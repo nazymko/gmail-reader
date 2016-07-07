@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.function.Function;
@@ -39,10 +40,15 @@ public class Labels {
         Message[] messages = folder.getMessages(totalMessages - 10, totalMessages);
         List<SmsMessage> list = new ArrayList<SmsMessage>();
         for (Message message : messages) {
+            debug(message);
             list.add(convert(message));
         }
 
         write("procredit.txt", list, (SmsMessage m) -> m.getBody().contains("PROCREDIT"));
+
+        for (SmsMessage smsMessage : list) {
+            write(smsMessage.getFrom() + ".sms.log", Arrays.asList(smsMessage), (SmsMessage m) -> true);
+        }
 
     }
 
@@ -51,6 +57,7 @@ public class Labels {
             for (SmsMessage smsMessage : list) {
                 if (function.apply(smsMessage)) {
                     writer.write(smsMessage.toString());
+                    writer.newLine();
                 }
             }
         }
