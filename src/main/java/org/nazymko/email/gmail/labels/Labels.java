@@ -4,8 +4,14 @@ import org.nazymko.GmailService;
 import org.nazymko.UserImpl;
 
 import javax.mail.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
+import java.util.function.Function;
 
 public class Labels {
 
@@ -30,23 +36,24 @@ public class Labels {
         System.out.println("Total messages = " + totalMessages);
         System.out.println("New messages = " + newMessages);
 
-        int messageCount = folder.getMessageCount();
-        System.out.println("messageCount = " + messageCount);
+        Message[] messages = folder.getMessages(totalMessages - 10, totalMessages);
+        List<SmsMessage> list = new ArrayList<SmsMessage>();
+        for (Message message : messages) {
+            list.add(convert(message));
+        }
 
+        write("procredit.txt", list, (SmsMessage m) -> m.getBody().contains("PROCREDIT"));
 
-//        Message[] messages = folder.getMessages(totalMessages - 1, totalMessages - 1);
-//        for (Message message : messages) {
-//            debug(message);
-//        }
+    }
 
-//        Message[] messages = folder.getMessages();
-//        List<SmsMessage> msgList = new ArrayList<SmsMessage>();
-//        for (Message message : messages) {
-//            msgList.add(convert(message));
-//        }
-
-        System.out.println(convert(folder.getMessage(messageCount)));
-
+    public static void write(String file, List<SmsMessage> list, Function<SmsMessage, Boolean> function) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File(file)))) {
+            for (SmsMessage smsMessage : list) {
+                if (function.apply(smsMessage)) {
+                    writer.write(smsMessage.toString());
+                }
+            }
+        }
     }
 
     private static SmsMessage convert(Message message) throws IOException, MessagingException {
